@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
-logger_runner = logging.getLogger("happiness")
+logger_runner = logging.getLogger("dreampath")
 
 # 设置日志级别
 logger_runner.setLevel(logging.INFO)
@@ -21,7 +21,7 @@ if not os.path.exists('logs'):
     os.makedirs('logs')
 
 # 定义日志文件的名称和位置
-log_file = 'happiness__{date}.log'.format(date=datetime.now().strftime('%Y-%m-%d'))
+log_file = 'dreampath__{date}.log'.format(date=datetime.now().strftime('%Y-%m-%d'))
 log_dir = 'logs'
 
 # 创建 handlers

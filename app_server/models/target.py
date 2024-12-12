@@ -14,10 +14,19 @@ class Target(Base):
     parent_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=True, comment="父级目标ID")
     likes_count = db.Column(db.BigInteger, default=0, comment="点赞数")
 
-    # 单向一对多引用
-    tasks = db.relationship("Task", order_by="Task.step")
-    children = db.relationship("Target", backref=db.backref('parent', remote_side=[id]),
-                             cascade="all, delete-orphan")
+    # # 修改关系定义，使用字符串方式引用
+    # tasks = db.relationship(
+    #     "Task",
+    #     order_by="Task.step",
+    #     backref=db.backref("target", lazy="joined"),
+    #     lazy="select"
+    # )
+    # children = db.relationship(
+    #     "Target",
+    #     backref=db.backref('parent', remote_side=[id]),
+    #     cascade="all, delete-orphan",
+    #     lazy="select"
+    # )
 
 
 def GetTargetById(tid):

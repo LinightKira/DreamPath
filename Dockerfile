@@ -15,3 +15,7 @@ COPY migrations migrations
 CMD ["flask","db","upgrade"]
 #CMD ["python", "init_db.py"]   #初始化数据库
 CMD ["python", "app.py"]
+
+
+# flask db migrate 
+# flask db upgrade

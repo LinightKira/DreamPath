@@ -83,7 +83,7 @@ def update_target():
         # 权限校验
         uid = get_jwt_identity()
         if uid != target.user_id:
-            return jsonify({"code": HTTPStatus.FORBIDDEN, "msg": "无权限修改"})
+            return jsonify({"code": HTTPStatus.FORBIDDEN, "msg": "��权限修改"})
 
         # 必填校验
         err = validate_target_data(data)
@@ -182,7 +182,9 @@ def like_target(target_id):
             return error_response('已经点赞过该目标')
             
         # 创建点赞
-        create_target_like(target_id=target_id, user_id=uid)
+        success= create_target_like(target_id=target_id, user_id=uid)
+        if not success:
+            return error_response(f"点赞失败")
         
         return success_response(message='点赞成功')
     except Exception as e:
@@ -202,8 +204,8 @@ def unlike_target(target_id):
             return error_response('目标不存在')
             
         # 删除点赞
-        like = delete_target_like(target_id=target_id, user_id=uid)
-        if not like:
+        sucess = delete_target_like(target_id=target_id, user_id=uid)
+        if not sucess:
             return error_response('未找到点赞记录')
             
         return success_response(message='取消点赞成功')

@@ -7,6 +7,8 @@ from sqlalchemy import desc
 from app_server import db
 from app_server.models.target import Target
 from app_server.vaildate.vaildate_target import validate_target_data
+from app_server.models.target_like import create_target_like, delete_target_like, TargetLike
+from app_server.utils.response import success_response, error_response
 
 target_bp = Blueprint('target', __name__)
 
@@ -155,4 +157,81 @@ def get_targets():
             }
         })
     except Exception as e:
-        return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)}) 
+        return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
+
+
+@target_bp.route('/target/<int:target_id>/like', methods=['POST'])
+@jwt_required()
+def like_target(target_id):
+    """点赞目标"""
+    try:
+        uid = get_jwt_identity()
+        
+        # 检查目标是否存在
+        target = Target.query.get(target_id)
+        if not target:
+            return error_response('目标不存在')
+            
+        # 检查是否已经点赞
+        existing_like = TargetLike.query.filter_by(
+            target_id=target_id,
+            user_id=uid
+        ).first()
+        
+        if existing_like:
+            return error_response('已经点赞过该目标')
+            
+        # 创建点赞
+        create_target_like(target_id=target_id, user_id=uid)
+        
+        return success_response(message='点赞成功')
+    except Exception as e:
+        return error_response(f'点赞失败: {str(e)}')
+
+
+@target_bp.route('/target/<int:target_id>/like', methods=['DELETE'])
+@jwt_required()
+def unlike_target(target_id):
+    """取消点赞"""
+    try:
+        uid = get_jwt_identity()
+        
+        # 检查目标是否存在
+        target = Target.query.get(target_id)
+        if not target:
+            return error_response('目标不存在')
+            
+        # 删除点赞
+        like = delete_target_like(target_id=target_id, user_id=uid)
+        if not like:
+            return error_response('未找到点赞记录')
+            
+        return success_response(message='取消点赞成功')
+    except Exception as e:
+        return error_response(f'取消点赞失败: {str(e)}')
+
+
+@target_bp.route('/target/<int:target_id>/like/status', methods=['GET'])
+@jwt_required()
+def get_like_status(target_id):
+    """获取当前用户的点赞状态"""
+    try:
+        uid = get_jwt_identity()
+        
+        # 检查目标是否存在
+        target = Target.query.get(target_id)
+        if not target:
+            return error_response('目标不存在')
+            
+        # 查询点赞状态
+        is_liked = TargetLike.query.filter_by(
+            target_id=target_id,
+            user_id=uid
+        ).first() is not None
+        
+        return success_response(data={
+            'is_liked': is_liked,
+            'likes_count': target.likes_count
+        })
+    except Exception as e:
+        return error_response(f'获取点赞状态失败: {str(e)}') 

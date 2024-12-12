@@ -8,12 +8,16 @@ class Target(Base):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), comment="创建者id")
     desc = db.Column(db.String(255), comment="目标描述")
     deadline = db.Column(db.DateTime, comment="目标截止时间")
-    priority = db.Column(db.Integer, default=0, comment="优先级: 0-低, 1-中, 2-高")
     progress = db.Column(db.Integer, default=0, comment="目标完成进度(0-100)")
     is_completed = db.Column(db.Boolean, default=False, comment="是否完成")
+    c_type = db.Column(db.String(50), nullable=False, default='normal', comment="目标类型")
+    parent_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=True, comment="父级目标ID")
+    likes_count = db.Column(db.BigInteger, default=0, comment="点赞数")
 
     # 单向一对多引用
     tasks = db.relationship("Task", order_by="Task.step")
+    children = db.relationship("Target", backref=db.backref('parent', remote_side=[id]),
+                             cascade="all, delete-orphan")
 
 
 def GetTargetById(tid):

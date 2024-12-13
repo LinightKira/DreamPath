@@ -15,7 +15,32 @@ def wx_login():
     try:
         # data = json.loads(request.get_data().decode('utf-8')) #将前端Json数据转为字典
         # code = data['code'] #前端POST过来的微信临时登录凭证code
-        code = request.args.get('wxcode')
+        # code = request.args.get('wxcode')
+        # print(code)
+
+        # 对于GET请求
+        if request.method == 'GET':
+            code = request.args.get('wxcode') or request.args.get('code')
+        
+        # 对于POST请求
+        elif request.method == 'POST':
+            # JSON数据
+            data = request.get_json()
+            code = data.get('wxcode') or data.get('code')
+            
+            # 表单数据
+            if not code:
+                code = request.form.get('wxcode') or request.form.get('code')
+        
+        print("Received code:", code)
+        
+        # 如果仍然为None，返回错误
+        if not code:
+            return jsonify({
+                "code": HTTPStatus.BAD_REQUEST, 
+                "msg": "未收到登录凭证code", 
+                "datas": ''
+            })
         appID = Config.APP_ID  # 开发者关于微信小程序的appID
         appSecret = Config.SECRET  # 开发者关于微信小程序的appSecret
 

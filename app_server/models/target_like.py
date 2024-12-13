@@ -1,5 +1,7 @@
 from datetime import datetime
 from app_server.db import Base, db
+from app_server.models.target import Target
+from app_server.models.user import User
 
 
 class TargetLike(Base):
@@ -24,14 +26,36 @@ class TargetLike(Base):
 def create_target_like(target_id, user_id):
     """创建点赞记录"""
     try:
+        # 首先检查目标是否存在
+        target = Target.query.get(target_id)
+        if not target:
+            print(f"目标不存在: target_id={target_id}")
+            return False
+            
+        # 检查用户是否存在
+        user = User.query.get(user_id)
+        if not user:
+            print(f"用户不存在: user_id={user_id}")
+            return False
+            
+        # 检查是否已经点过赞
+        existing_like = TargetLike.query.filter_by(
+            target_id=target_id, 
+            user_id=user_id
+        ).first()
+        if existing_like:
+            print(f"用户已经点过赞: user_id={user_id}, target_id={target_id}")
+            return False
+
+        # 创建新的点赞记录
         like = TargetLike(target_id=target_id, user_id=user_id)
         db.session.add(like)
-        # 更新目标的点赞计数
-        target = like.target
         target.likes_count += 1
         db.session.commit()
         return True
-    except Exception:
+        
+    except Exception as e:
+        print(f"点赞失败: {str(e)}")
         db.session.rollback()
         return False
 

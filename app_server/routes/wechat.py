@@ -47,10 +47,16 @@ def wx_login():
                 user_temp = User(nickname='匿名用户', openid=openid)
                 user_temp.create()
                 user = User.query.filter(User.openid == openid).first()
+            
+            # 更新最后活跃时间
+            from datetime import datetime
+            user.last_active_time = datetime.now()
+            user.save()
 
             from flask_jwt_extended import create_access_token
             res = {
-                "uid": user.id,
+                "nickname": user.nickname,
+                "avatar": user.avatar if hasattr(user, 'avatar') else '',  # 确保用户模型有avatar字段
                 "access_token": create_access_token(identity=str(user.id))
             }
             return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": res})

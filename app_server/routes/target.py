@@ -2,7 +2,7 @@ from http import HTTPStatus
 from datetime import datetime
 
 from flask import request, jsonify, Blueprint
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 from sqlalchemy import desc
 
 from app_server import db
@@ -177,6 +177,7 @@ def get_targets():
 @jwt_required()
 def like_target(target_id):
     """点赞目标"""
+    print("like_target")
     try:
         uid = get_current_user_id() 
         
@@ -204,26 +205,26 @@ def like_target(target_id):
         return error_response(f'点赞失败: {str(e)}')
 
 
-@target_bp.route('/target/<int:target_id>/like', methods=['DELETE'])
-@jwt_required()
-def unlike_target(target_id):
-    """取消点赞"""
-    try:
-        uid = get_current_user_id() 
+# @target_bp.route('/target/<int:target_id>/like', methods=['DELETE'])
+# @jwt_required()
+# def unlike_target(target_id):
+#     """取消点赞"""
+#     try:
+#         uid = get_current_user_id() 
         
-        # 检查目标是否存在
-        target = Target.query.get(target_id)
-        if not target:
-            return error_response('目标不存在')
+#         # 检查目标是否存在
+#         target = Target.query.get(target_id)
+#         if not target:
+#             return error_response('目标不存在')
             
-        # 删除点赞
-        sucess = delete_target_like(target_id=target_id, user_id=uid)
-        if not sucess:
-            return error_response('未找到点赞记录')
+#         # 删除点赞
+#         sucess = delete_target_like(target_id=target_id, user_id=uid)
+#         if not sucess:
+#             return error_response('未找到点赞记录')
             
-        return success_response(message='取消点赞成功')
-    except Exception as e:
-        return error_response(f'取消点赞失败: {str(e)}')
+#         return success_response(message='取消点赞成功')
+#     except Exception as e:
+#         return error_response(f'取消点赞失败: {str(e)}')
 
 
 @target_bp.route('/target/<int:target_id>/like/status', methods=['GET'])

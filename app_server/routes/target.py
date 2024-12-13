@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from datetime import datetime
 
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -9,6 +10,7 @@ from app_server.models.target import Target
 from app_server.vaildate.vaildate_target import validate_target_data
 from app_server.models.target_like import create_target_like, delete_target_like, TargetLike
 from app_server.utils.response import success_response, error_response
+from app_server.utils import get_current_user_id
 
 target_bp = Blueprint('target', __name__)
 
@@ -18,20 +20,27 @@ target_bp = Blueprint('target', __name__)
 def create_target():
     try:
         data = request.get_json()
-
+        
+        # 只接受指定字段
+        allowed_fields = {'title', 'desc', 'deadline','c_type', 'parent_id'}
+        filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
+        
+        # 打印过滤后的数据
+        print("Filtered Data:", filtered_data)
+        
         # 参数校验
-        err = validate_target_data(data)
+        err = validate_target_data(filtered_data)
         if err is not None:
             return jsonify({"code": HTTPStatus.BAD_REQUEST, "msg": err})
         
-        target = Target(**data)
-        uid = get_jwt_identity()
-        target.user_id = uid
-
+        target = Target(**filtered_data)
+        target.user_id = get_current_user_id()  # 使用工具函数获取整数类型的user_id
+        
         target.create()
         return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": target.to_dict()})
 
     except Exception as e:
+        print("Error:", str(e))
         db.session.rollback()
         return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
 
@@ -49,7 +58,11 @@ def get_target(tid):
             })
 
         data = target.to_dict()
-        uid = get_jwt_identity()
+        uid = get_current_user_id()  # 使用工具函数
+        print('uid:',uid,type(uid))
+        print('targetuser_id',target.user_id,type(target.user_id))
+        # 默认设置为False
+        data['is_edit'] = False
         if target.user_id == uid:
             data['is_edit'] = True
 
@@ -66,45 +79,45 @@ def get_target(tid):
         })
 
 
-@target_bp.route('/target', methods=['PUT'])
-@jwt_required()
-def update_target():
-    try:
-        data = request.get_json()
-        tid = data.get('id')
-        target = Target.query.get(tid)
+# @target_bp.route('/target', methods=['PUT'])
+# @jwt_required()
+# def update_target():
+#     try:
+#         data = request.get_json()
+#         tid = data.get('id')
+#         target = Target.query.get(tid)
 
-        if not target or target.status == 0:
-            return jsonify({
-                "code": HTTPStatus.NOT_FOUND,
-                "msg": "目标不存在"
-            })
+#         if not target or target.status == 0:
+#             return jsonify({
+#                 "code": HTTPStatus.NOT_FOUND,
+#                 "msg": "目标不存在"
+#             })
 
-        # 权限校验
-        uid = get_jwt_identity()
-        if uid != target.user_id:
-            return jsonify({"code": HTTPStatus.FORBIDDEN, "msg": "��权限修改"})
+#         # 权限校验
+#         uid = get_current_user_id() 
+#         if uid != target.user_id:
+#             return jsonify({"code": HTTPStatus.FORBIDDEN, "msg": "无权限修改"})
 
-        # 必填校验
-        err = validate_target_data(data)
-        if err is not None:
-            return jsonify({"code": HTTPStatus.BAD_REQUEST, "msg": err})
+#         # 必填校验
+#         err = validate_target_data(data)
+#         if err is not None:
+#             return jsonify({"code": HTTPStatus.BAD_REQUEST, "msg": err})
 
-        # 排除create_time和update_time
-        data.pop("create_time", None)
-        data.pop("update_time", None)
+#         # 排除create_time和update_time
+#         data.pop("create_time", None)
+#         data.pop("update_time", None)
 
-        Target.query.filter_by(id=data.pop("id")).update(data)
-        db.session.commit()
+#         Target.query.filter_by(id=data.pop("id")).update(data)
+#         db.session.commit()
 
-        return jsonify({
-            "code": HTTPStatus.OK,
-            "msg": "success"
-        })
+#         return jsonify({
+#             "code": HTTPStatus.OK,
+#             "msg": "success"
+#         })
 
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
 
 
 @target_bp.route('/target/<int:tid>', methods=['DELETE'])
@@ -112,7 +125,7 @@ def update_target():
 def delete_target(tid):
     try:
         target = Target.query.get(tid)
-        uid = get_jwt_identity()
+        uid = get_current_user_id() 
         
         if not target or target.user_id != uid:
             return jsonify({"code": HTTPStatus.FORBIDDEN, "msg": "无权限删除"})
@@ -132,7 +145,7 @@ def delete_target(tid):
 @jwt_required()
 def get_targets():
     try:
-        uid = get_jwt_identity()
+        uid = get_current_user_id() 
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
 
@@ -165,7 +178,7 @@ def get_targets():
 def like_target(target_id):
     """点赞目标"""
     try:
-        uid = get_jwt_identity()
+        uid = get_current_user_id() 
         
         # 检查目标是否存在
         target = Target.query.get(target_id)
@@ -196,7 +209,7 @@ def like_target(target_id):
 def unlike_target(target_id):
     """取消点赞"""
     try:
-        uid = get_jwt_identity()
+        uid = get_current_user_id() 
         
         # 检查目标是否存在
         target = Target.query.get(target_id)
@@ -218,7 +231,7 @@ def unlike_target(target_id):
 def get_like_status(target_id):
     """获取当前用户的点赞状态"""
     try:
-        uid = get_jwt_identity()
+        uid = get_current_user_id() 
         
         # 检查目标是否存在
         target = Target.query.get(target_id)
@@ -236,4 +249,35 @@ def get_like_status(target_id):
             'likes_count': target.likes_count
         })
     except Exception as e:
-        return error_response(f'获取点赞状态失败: {str(e)}') 
+        return error_response(f'获取点赞状态失败: {str(e)}')
+
+
+@target_bp.route('/target/<int:target_id>/complete', methods=['POST'])
+@jwt_required()
+def complete_target(target_id):
+    """完成目标"""
+    try:
+        uid = get_current_user_id()
+        
+        # 检查目标是否存在
+        target = Target.query.get(target_id)
+        if not target:
+            return error_response('目标不存在')
+            
+        # 检查是否是目标的创建者
+        if target.user_id != uid:
+            return error_response('无权限完成此目标')
+            
+        # 检查目标是否已经完成
+        if target.is_completed:
+            return error_response('目标已经完成')
+            
+        # 更新目标状态为已完成，使用服务器当前时间
+        target.is_completed = True
+        target.complete_time = datetime.now()
+        db.session.commit()
+        
+        return success_response(message='目标完成成功')
+    except Exception as e:
+        db.session.rollback()
+        return error_response(f'完成目标失败: {str(e)}') 

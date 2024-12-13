@@ -10,6 +10,7 @@ class Target(Base):
     deadline = db.Column(db.DateTime, comment="目标截止时间")
     progress = db.Column(db.Integer, default=0, comment="目标完成进度(0-100)")
     is_completed = db.Column(db.Boolean, default=False, comment="是否完成")
+    complete_time = db.Column(db.DateTime, nullable=True, comment="目标完成时间")
     c_type = db.Column(db.String(50), nullable=False, default='normal', comment="目标类型")
     parent_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=True, comment="父级目标ID")
     likes_count = db.Column(db.BigInteger, default=0, comment="点赞数")

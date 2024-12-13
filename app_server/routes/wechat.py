@@ -73,7 +73,12 @@ def wx_login():
                 user_temp.create()
                 user = User.query.filter(User.openid == openid).first()
 
-            return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": {"uid": user.id}})
+            from flask_jwt_extended import create_access_token
+            res = {
+                "uid": user.id,
+                "access_token": create_access_token(identity=str(user.id))
+            }
+            return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": res})
         return jsonify({"code": HTTPStatus.BAD_REQUEST, "msg": "code已失效或不正确", "datas": ''})
 
     except Exception as e:

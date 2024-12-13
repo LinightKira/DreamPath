@@ -29,6 +29,3 @@ class Target(Base):
     #     lazy="select"
     # )
 
-
-def GetTargetById(tid):
-    return Target.query.get(tid) 

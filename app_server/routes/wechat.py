@@ -81,7 +81,7 @@ def wx_login():
             from flask_jwt_extended import create_access_token
             res = {
                 "nickname": user.nickname,
-                "avatar": user.avatar if hasattr(user, 'avatar') else '',  # 确保用户模型有avatar字段
+                "avatar": user.avatar,  
                 "access_token": create_access_token(identity=str(user.id))
             }
             return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": res})

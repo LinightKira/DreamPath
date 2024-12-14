@@ -61,10 +61,18 @@ def get_target(tid):
         uid = get_current_user_id()  # 使用工具函数
         print('uid:',uid,type(uid))
         print('targetuser_id',target.user_id,type(target.user_id))
-        # 默认设置为False
+        
+        # 默认设置为False True 表示为自己的
         data['is_edit'] = False
         if target.user_id == uid:
             data['is_edit'] = True
+            
+        # 查询当前用户是否点赞过该目标
+        target_like = TargetLike.query.filter_by(
+            target_id=tid,
+            user_id=uid
+        ).first()
+        data['is_liked'] = True if target_like else False
 
         return jsonify({
             "code": HTTPStatus.OK,
@@ -275,31 +283,6 @@ def like_target(target_id):
 #     except Exception as e:
 #         return error_response(f'取消点赞失败: {str(e)}')
 
-
-@target_bp.route('/target/<int:target_id>/like/status', methods=['GET'])
-@jwt_required()
-def get_like_status(target_id):
-    """获取当前用户的点赞状态"""
-    try:
-        uid = get_current_user_id() 
-        
-        # 检查目标是否存在
-        target = Target.query.get(target_id)
-        if not target:
-            return error_response('目标不存在')
-            
-        # 查询点赞状态
-        is_liked = TargetLike.query.filter_by(
-            target_id=target_id,
-            user_id=uid
-        ).first() is not None
-        
-        return success_response(data={
-            'is_liked': is_liked,
-            'likes_count': target.likes_count
-        })
-    except Exception as e:
-        return error_response(f'获取点赞状态失败: {str(e)}')
 
 
 @target_bp.route('/target/<int:target_id>/complete', methods=['POST'])

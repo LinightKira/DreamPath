@@ -25,20 +25,21 @@ log_file = 'dreampath__{date}.log'.format(date=datetime.now().strftime('%Y-%m-%d
 log_dir = 'logs'
 
 # 创建 handlers
-c_handler = logging.StreamHandler()
 f_handler = TimedRotatingFileHandler(os.path.join(log_dir, log_file), when='midnight', interval=1, backupCount=30,
                                      encoding='utf-8')
-c_handler.setLevel(logging.INFO)
 f_handler.setLevel(logging.INFO)
 
 # 创建格式器并添加到handlers
-c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
 f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 f_format.encoding = 'utf-8'  # 设置编码
 
-c_handler.setFormatter(c_format)
 f_handler.setFormatter(f_format)
 
 # 添加 handlers到日志器
-logger_runner.addHandler(c_handler)
 logger_runner.addHandler(f_handler)
+
+# 添加控制台输出
+c_handler = logging.StreamHandler()
+c_handler.setLevel(logging.INFO)
+c_handler.setFormatter(f_format)
+logger_runner.addHandler(c_handler)

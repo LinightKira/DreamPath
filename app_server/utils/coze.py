@@ -4,6 +4,7 @@ from config import Config
 from app_server.logger import logger_runner
 
 
+# https://www.coze.cn/docs/developer_guides/workflow_run
 def run_coze_workflow(workflow_id: str, parameters: dict) -> dict:
     """
     执行Coze workflow
@@ -15,6 +16,8 @@ def run_coze_workflow(workflow_id: str, parameters: dict) -> dict:
     Returns:
         dict: API响应结果
     """
+    logger_runner.info(f"开始执行Coze workflow, workflow_id: {workflow_id}, parameters: {parameters}")
+    
     try:
         url = "https://api.coze.cn/v1/workflow/run"
         
@@ -28,6 +31,8 @@ def run_coze_workflow(workflow_id: str, parameters: dict) -> dict:
             "parameters": parameters
         }
         
+        logger_runner.debug(f"发送请求到Coze API, url: {url}, payload: {payload}")
+        
         response = requests.post(
             url=url,
             headers=headers,
@@ -35,16 +40,20 @@ def run_coze_workflow(workflow_id: str, parameters: dict) -> dict:
         )
         
         if response.status_code == 200:
-            return response.json()
+            result = response.json()
+            logger_runner.info(f"Coze workflow执行成功, 响应结果: {result}")
+            return result
         else:
-            logger_runner.error(f"Coze API调用失败: {response.status_code} - {response.text}")
+            error_msg = f"Coze API调用失败: {response.status_code} - {response.text}"
+            logger_runner.error(error_msg)
             return {
                 "success": False,
                 "error": f"API调用失败: {response.status_code}"
             }
             
     except Exception as e:
-        logger_runner.error(f"执行Coze workflow时发生错误: {str(e)}")
+        error_msg = f"执行Coze workflow时发生错误: {str(e)}"
+        logger_runner.error(error_msg)
         return {
             "success": False,
             "error": f"执行出错: {str(e)}"
@@ -64,6 +73,8 @@ def chat_with_coze_bot(bot_id: str, user_id: str, message: str, auto_save_histor
     Returns:
         dict: API响应结果
     """
+    logger_runner.info(f"开始与Coze机器人对话, bot_id: {bot_id}, user_id: {user_id}, message: {message}")
+    
     try:
         url = "https://api.coze.cn/v3/chat"
         
@@ -86,6 +97,8 @@ def chat_with_coze_bot(bot_id: str, user_id: str, message: str, auto_save_histor
             ]
         }
         
+        logger_runner.debug(f"发送请求到Coze聊天API, url: {url}, payload: {payload}")
+        
         response = requests.post(
             url=url,
             headers=headers,
@@ -93,16 +106,20 @@ def chat_with_coze_bot(bot_id: str, user_id: str, message: str, auto_save_histor
         )
         
         if response.status_code == 200:
-            return response.json()
+            result = response.json()
+            logger_runner.info(f"Coze聊天请求成功, 响应结果: {result}")
+            return result
         else:
-            logger_runner.error(f"Coze聊天API调用失败: {response.status_code} - {response.text}")
+            error_msg = f"Coze聊天API调用失败: {response.status_code} - {response.text}"
+            logger_runner.error(error_msg)
             return {
                 "success": False,
                 "error": f"API调用失败: {response.status_code}"
             }
             
     except Exception as e:
-        logger_runner.error(f"调用Coze聊天机器人时发生错误: {str(e)}")
+        error_msg = f"调用Coze聊天机器人时发生错误: {str(e)}"
+        logger_runner.error(error_msg)
         return {
             "success": False,
             "error": f"执行出错: {str(e)}"

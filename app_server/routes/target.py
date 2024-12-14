@@ -11,6 +11,7 @@ from app_server.vaildate.vaildate_target import validate_target_data
 from app_server.models.target_like import create_target_like, TargetLike
 from app_server.utils.response import success_response, error_response
 from app_server.utils import get_current_user_id
+from app_server.logger import logger_runner
 
 target_bp = Blueprint('target', __name__)
 
@@ -19,6 +20,7 @@ target_bp = Blueprint('target', __name__)
 @jwt_required()
 def create_target():
     try:
+        logger_runner.info("开始创建新目标")
         data = request.get_json()
         
         # 只接受指定字段
@@ -26,21 +28,23 @@ def create_target():
         filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
         
         # 打印过滤后的数据
-        print("Filtered Data:", filtered_data)
+        logger_runner.debug(f"过滤后的目标数据: {filtered_data}")
         
         # 参数校验
         err = validate_target_data(filtered_data)
         if err is not None:
+            logger_runner.warning(f"目标数据验证失败: {err}")
             return jsonify({"code": HTTPStatus.BAD_REQUEST, "msg": err})
         
         target = Target(**filtered_data)
         target.user_id = get_current_user_id()  # 使用工具函数获取整数类型的user_id
         
         target.create()
+        logger_runner.info(f"目标创建成功，ID: {target.id}")
         return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": target.to_dict()})
 
     except Exception as e:
-        print("Error:", str(e))
+        logger_runner.error(f"创建目标时发生错误: {str(e)}")
         db.session.rollback()
         return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
 
@@ -49,9 +53,11 @@ def create_target():
 @jwt_required()
 def get_target(tid):
     try:
+        logger_runner.info(f"获取目标详情，目标ID: {tid}")
         target = Target.query.get(tid)
 
         if not target or target.status == 0:
+            logger_runner.warning(f"目标不存在或已删除，目标ID: {tid}")
             return jsonify({
                 "code": HTTPStatus.NOT_FOUND,
                 "msg": "目标不存在"
@@ -59,6 +65,7 @@ def get_target(tid):
 
         data = target.to_dict()
         uid = get_current_user_id()  # 使用工具函数
+        logger_runner.debug(f"当前用户ID: {uid}, 目标所有者ID: {target.user_id}")
         print('uid:',uid,type(uid))
         print('targetuser_id',target.user_id,type(target.user_id))
         
@@ -74,6 +81,7 @@ def get_target(tid):
         ).first()
         data['is_liked'] = True if target_like else False
 
+        logger_runner.info(f"成功获取目标详情，目标ID: {tid}")
         return jsonify({
             "code": HTTPStatus.OK,
             "msg": "success",
@@ -81,6 +89,7 @@ def get_target(tid):
         })
 
     except Exception as e:
+        logger_runner.error(f"获取目标详情时发生错误: {str(e)}")
         return jsonify({
             "code": HTTPStatus.INTERNAL_SERVER_ERROR,
             "msg": str(e)
@@ -159,7 +168,7 @@ def delete_target(tid):
 @jwt_required()
 def get_targets():
     try:
-        
+        logger_runner.info("开始获取目标列表")
         # 获取查询参数
         # 页码，默认为第1页
         page = request.args.get('page', 1, type=int)
@@ -200,6 +209,7 @@ def get_targets():
         targets = pagination.items
         
         # 返回JSON响应
+        logger_runner.info(f"成功获取目标列表，总数: {pagination.total}")
         return jsonify({
             "code": HTTPStatus.OK,
             "msg": "success",
@@ -223,6 +233,7 @@ def get_targets():
         })
     except Exception as e:
         # 处理其他异常情况
+        logger_runner.error(f"获取目标列表时发生错误: {str(e)}")
         return jsonify({
             "code": HTTPStatus.INTERNAL_SERVER_ERROR, 
             "msg": str(e)
@@ -234,13 +245,14 @@ def get_targets():
 @jwt_required()
 def like_target(target_id):
     """点赞目标"""
-    print("like_target")
+    logger_runner.info(f"用户开始点赞目标，目标ID: {target_id}")
     try:
         uid = get_current_user_id() 
         
         # 检查目标是否存在
         target = Target.query.get(target_id)
         if not target:
+            logger_runner.warning(f"点赞失败，目标不存在，目标ID: {target_id}")
             return error_response('目标不存在')
             
         # 检查是否已经点赞
@@ -250,15 +262,19 @@ def like_target(target_id):
         ).first()
         
         if existing_like:
+            logger_runner.warning(f"用户已经点赞过该目标，用户ID: {uid}, 目标ID: {target_id}")
             return error_response('已经点赞过该目标')
             
         # 创建点赞
         success= create_target_like(target_id=target_id, user_id=uid)
         if not success:
+            logger_runner.error(f"创建点赞记录失败，用户ID: {uid}, 目标ID: {target_id}")
             return error_response(f"点赞失败")
         
+        logger_runner.info(f"点赞成功，用户ID: {uid}, 目标ID: {target_id}")
         return success_response(message='点赞成功')
     except Exception as e:
+        logger_runner.error(f"点赞过程中发生错误: {str(e)}")
         return error_response(f'点赞失败: {str(e)}')
 
 

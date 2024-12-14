@@ -8,7 +8,7 @@ from sqlalchemy import desc
 from app_server import db
 from app_server.models.target import Target
 from app_server.vaildate.vaildate_target import validate_target_data
-from app_server.models.target_like import create_target_like, delete_target_like, TargetLike
+from app_server.models.target_like import create_target_like, TargetLike
 from app_server.utils.response import success_response, error_response
 from app_server.utils import get_current_user_id
 

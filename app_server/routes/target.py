@@ -8,7 +8,7 @@ from sqlalchemy import desc
 from app_server import db
 from app_server.models.target import Target
 from app_server.vaildate.vaildate_target import validate_target_data
-from app_server.models.target_like import create_target_like, delete_target_like, TargetLike
+from app_server.models.target_like import create_target_like, TargetLike
 from app_server.utils.response import success_response, error_response
 from app_server.utils import get_current_user_id
 
@@ -61,10 +61,18 @@ def get_target(tid):
         uid = get_current_user_id()  # 使用工具函数
         print('uid:',uid,type(uid))
         print('targetuser_id',target.user_id,type(target.user_id))
-        # 默认设置为False
+        
+        # 默认设置为False True 表示为自己的
         data['is_edit'] = False
         if target.user_id == uid:
             data['is_edit'] = True
+            
+        # 查询当前用户是否点赞过该目标
+        target_like = TargetLike.query.filter_by(
+            target_id=tid,
+            user_id=uid
+        ).first()
+        data['is_liked'] = True if target_like else False
 
         return jsonify({
             "code": HTTPStatus.OK,
@@ -140,37 +148,86 @@ def delete_target(tid):
         db.session.rollback()
         return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
 
-
+# 使用示例：
+# 获取最新目标：/targets?sort=latest
+# 获取最热目标：/targets?sort=hottest
+# 分页和排序组合：/targets?sort=hottest&page=2&per_page=10
+# 查询所有用户的目标：/targets
+# 查询特定用户的目标：/targets?uid=123
+# 组合查询：/targets?uid=123&sort=hottest&page=2&per_page=10
 @target_bp.route('/targets', methods=['GET'])
 @jwt_required()
 def get_targets():
     try:
-        uid = get_current_user_id() 
+        
+        # 获取查询参数
+        # 页码，默认为第1页
         page = request.args.get('page', 1, type=int)
+        # 每页显示数量，默认为10条
         per_page = request.args.get('per_page', 10, type=int)
-
-        # 查询条件过滤
-        query = Target.query.filter(Target.user_id == uid, Target.status > 0)
-
-        # 按创建时间倒序
-        query = query.order_by(desc(Target.create_time))
-
-        # 分页
+        # 排序类型，默认为最新（latest），可选最热（hottest）
+        sort_type = request.args.get('sort', 'latest', type=str)
+        # 目标用户ID，可选
+        target_uid = request.args.get('uid', type=int)
+        
+        # 基础查询条件
+        # 仅显示状态为1（激活）且未完成的目标
+        query = Target.query.filter(
+            Target.status == 1, 
+            Target.is_completed == False
+        )
+        
+        # 如果提供了特定用户ID，则按该用户ID过滤
+        if target_uid:           
+            query = query.filter(Target.user_id == target_uid)
+        
+        # 根据排序类型应用不同的排序规则
+        if sort_type == 'hottest':
+            # 最热排序：
+            # 1. 首先按点赞数降序排序
+            # 2. 对于点赞数相同的目标，按创建时间降序排序（确保最新的目标排在前面）
+            query = query.order_by(
+                desc(Target.likes_count), 
+                desc(Target.create_time)
+            )
+        else:  # 默认为最新排序
+            # 按创建时间降序排序，显示最新创建的目标
+            query = query.order_by(desc(Target.create_time))
+        
+        # 执行分页查询
         pagination = query.paginate(page=page, per_page=per_page)
+        # 获取当前页的目标列表
         targets = pagination.items
-
+        
+        # 返回JSON响应
         return jsonify({
             "code": HTTPStatus.OK,
             "msg": "success",
             "datas": {
+                # 将目标列表转换为字典格式
                 'targets': [t.to_dict() for t in targets],
+                # 当前页码
                 'page': page,
+                # 总页数
                 'total': pagination.pages,
+                # 总目标数
                 'total_count': pagination.total
             }
         })
+    
+    except PermissionError as e:
+        # 处理权限相关的异常
+        return jsonify({
+            "code": HTTPStatus.FORBIDDEN, 
+            "msg": "没有权限访问该用户的目标"
+        })
     except Exception as e:
-        return jsonify({"code": HTTPStatus.INTERNAL_SERVER_ERROR, "msg": str(e)})
+        # 处理其他异常情况
+        return jsonify({
+            "code": HTTPStatus.INTERNAL_SERVER_ERROR, 
+            "msg": str(e)
+        })
+
 
 
 @target_bp.route('/target/<int:target_id>/like', methods=['POST'])
@@ -226,31 +283,6 @@ def like_target(target_id):
 #     except Exception as e:
 #         return error_response(f'取消点赞失败: {str(e)}')
 
-
-@target_bp.route('/target/<int:target_id>/like/status', methods=['GET'])
-@jwt_required()
-def get_like_status(target_id):
-    """获取当前用户的点赞状态"""
-    try:
-        uid = get_current_user_id() 
-        
-        # 检查目标是否存在
-        target = Target.query.get(target_id)
-        if not target:
-            return error_response('目标不存在')
-            
-        # 查询点赞状态
-        is_liked = TargetLike.query.filter_by(
-            target_id=target_id,
-            user_id=uid
-        ).first() is not None
-        
-        return success_response(data={
-            'is_liked': is_liked,
-            'likes_count': target.likes_count
-        })
-    except Exception as e:
-        return error_response(f'获取点赞状态失败: {str(e)}')
 
 
 @target_bp.route('/target/<int:target_id>/complete', methods=['POST'])

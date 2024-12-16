@@ -1,7 +1,7 @@
 
 # 文本内容安全识别
 # https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/msgSecCheck.html
-
+from config import Config
 
 def validate_target_data(data):
     if not data.get('title'):

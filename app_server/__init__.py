@@ -8,6 +8,7 @@ from app_server.db import db
 from app_server.routes.user import user_bp
 from app_server.routes.wechat import wechat_bp
 from app_server.routes.target import target_bp
+from app_server.routes.blessing import blessing_bp
 
 from config import Config
 from flask_jwt_extended import JWTManager
@@ -30,6 +31,7 @@ jwt = JWTManager(app)
 app.register_blueprint(user_bp)
 app.register_blueprint(wechat_bp)
 app.register_blueprint(target_bp)
+app.register_blueprint(blessing_bp)
 
 
 # 连接数据库

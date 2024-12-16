@@ -29,3 +29,16 @@ class Target(Base):
     #     lazy="select"
     # )
 
+    @classmethod
+    def get_target_by_id(cls, target_id):
+        """
+        根据目标ID获取目标对象
+        
+        Args:
+            target_id: 目标ID
+        
+        Returns:
+            Target: 目标对象，如果不存在返回None
+        """
+        return cls.query.filter_by(id=target_id).first()
+

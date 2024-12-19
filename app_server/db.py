@@ -29,3 +29,12 @@ class Base(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def save(self):
+        """保存对象到数据库"""
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+

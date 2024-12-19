@@ -72,6 +72,12 @@ def wx_login():
                 user_temp = User(nickname='匿名用户', openid=openid)
                 user_temp.create()
                 user = User.query.filter(User.openid == openid).first()
+            elif user.status == 0:
+                return jsonify({
+                    "code": HTTPStatus.BAD_REQUEST, 
+                    "msg": "用户已禁用", 
+                    "datas": ''
+                })
             
             # 更新最后活跃时间
             from datetime import datetime

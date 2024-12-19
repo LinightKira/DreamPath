@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 from http import HTTPStatus
 from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 
+from app_server.logger import logger_runner
 from app_server.models.user import User
 
 user_bp = Blueprint('user', __name__)
@@ -40,10 +42,48 @@ def get_userInfo():
 
 
 # 刷新Token
-@user_bp.route('/refresh', methods=['POST'])
-@jwt_required(refresh=True)
+@user_bp.route('/user/refresh', methods=['POST'])
+@jwt_required()
 def refresh():
-    identity = get_jwt_identity()
-    print("uid:", identity)
-    access_token = create_access_token(identity=identity)
-    return jsonify(access_token=access_token)
+    try:
+        # 获取当前用户身份
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return jsonify({
+                'code': 401,
+                'msg': '无效的刷新令牌'
+            }), 401
+
+        # 可以在这里添加额外的用户验证逻辑
+        user = User.query.get(current_user_id)
+        if not user or not user.status==1:
+            return jsonify({
+                'code': 401,
+                'msg': '用户状态异常'
+            }), 401
+
+        
+        access_token = create_access_token(
+            identity=current_user_id
+        )
+
+        # 记录刷新token的操作日志
+        logger_runner.info(
+            f"User {current_user_id} refreshed access token at {datetime.now(timezone.utc)}"
+        )
+        user.last_active_time = datetime.now()
+        user.save()
+        return jsonify({
+            'code': 200,
+            'msg': '刷新成功',
+            'data': {
+                'access_token': access_token
+            }
+        })
+
+    except Exception as e:
+        logger_runner.error(f"Token refresh failed: {str(e)}")
+        return jsonify({
+            'code': 500,
+            'msg': '服务器内部错误'
+        }), 500

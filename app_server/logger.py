@@ -1,5 +1,5 @@
 """
-@Time        : 2023/12/20 11:38
+@Time        : 2024/12/23 9:47
 @Author      : LinightX
 @File        : logger.py
 @Description : 日志包
@@ -11,10 +11,10 @@ import os
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 
-logger_runner = logging.getLogger("dreampath")
+logger = logging.getLogger("dreampath")
 
 # 设置日志级别
-logger_runner.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 
 # 自动创建目录
 if not os.path.exists('logs'):
@@ -36,10 +36,10 @@ f_format.encoding = 'utf-8'  # 设置编码
 f_handler.setFormatter(f_format)
 
 # 添加 handlers到日志器
-logger_runner.addHandler(f_handler)
+logger.addHandler(f_handler)
 
 # 添加控制台输出
 c_handler = logging.StreamHandler()
 c_handler.setLevel(logging.INFO)
 c_handler.setFormatter(f_format)
-logger_runner.addHandler(c_handler)
+logger.addHandler(c_handler)

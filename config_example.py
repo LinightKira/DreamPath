@@ -2,6 +2,7 @@ from datetime import timedelta
 
 
 class Config:
+    TESTING_MODE = False  # 默认关闭测试模式
 
     # mysql
     MYSQL_HOST = '127.0.0.1'  # 127.0.0.1/localhost

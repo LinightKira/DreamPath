@@ -17,12 +17,12 @@ def success_response(
     """
     response = {
         "code": code,
-        "message": message,
+        "msg": message,
         "success": True
     }
     
     if data is not None:
-        response["data"] = data
+        response["datas"] = data
         
     return jsonify(response)
 
@@ -42,12 +42,12 @@ def error_response(
     """
     response = {
         "code": code,
-        "message": message,
+        "msg": message,
         "success": False
     }
     
     if data is not None:
-        response["data"] = data
+        response["datas"] = data
         
     return jsonify(response)
 
@@ -69,11 +69,11 @@ def general_response(
     """
     response = {
         "code": code,
-        "message": message,
+        "msg": message,
         "success": success
     }
     
     if data is not None:
-        response["data"] = data
+        response["datas"] = data
         
     return jsonify(response) 

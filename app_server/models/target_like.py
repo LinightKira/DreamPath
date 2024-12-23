@@ -1,4 +1,3 @@
-from datetime import datetime
 from app_server.db import Base, db
 from app_server.models.target import Target
 from app_server.models.user import User
@@ -7,12 +6,11 @@ from app_server.models.user import User
 class TargetLike(Base):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment="自增主键")
     target_id = db.Column(db.Integer, db.ForeignKey('target.id', ondelete='CASCADE'), 
-                         nullable=False, comment="目标ID")
+                         nullable=False, comment="愿望ID")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), 
                        nullable=False, comment="用户ID")
-    created_at = db.Column(db.DateTime, default=datetime.now, comment="点赞时间")
 
-    # 建立唯一索引，确保同一用户不能重复点赞同一目标
+    # 建立唯一索引，确保同一用户不能重复祝福同一愿望
     __table_args__ = (
         db.UniqueConstraint('target_id', 'user_id', name='uk_target_user'),
     )
@@ -24,12 +22,12 @@ class TargetLike(Base):
 
 
 def create_target_like(target_id, user_id):
-    """创建点赞记录"""
+    """创建祝福记录"""
     try:
-        # 首先检查目标是否存在
+        # 首先检查愿望是否存在
         target = Target.query.get(target_id)
         if not target:
-            print(f"目标不存在: target_id={target_id}")
+            print(f"愿望不存在: target_id={target_id}")
             return False
             
         # 检查用户是否存在
@@ -47,7 +45,7 @@ def create_target_like(target_id, user_id):
             print(f"用户已经点过赞: user_id={user_id}, target_id={target_id}")
             return False
 
-        # 创建新的点赞记录
+        # 创建新的祝福记录
         like = TargetLike(target_id=target_id, user_id=user_id)
         db.session.add(like)
         target.likes_count += 1
@@ -55,17 +53,17 @@ def create_target_like(target_id, user_id):
         return True
         
     except Exception as e:
-        print(f"点赞失败: {str(e)}")
+        print(f"祝福失败: {str(e)}")
         db.session.rollback()
         return False
 
 def delete_target_like(target_id, user_id):
-    """删除点赞记录"""
+    """删除祝福记录"""
     try:
         like = TargetLike.query.filter_by(target_id=target_id, user_id=user_id).first()
         if like:
             db.session.delete(like)
-            # 更新目标的点赞计数
+            # 更新愿望的祝福计数
             target = like.target
             target.likes_count = max(0, target.likes_count - 1)
             db.session.commit()

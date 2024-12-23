@@ -14,7 +14,8 @@ class Target(Base):
     c_type = db.Column(db.String(50), nullable=False, default='normal', comment="目标类型")
     parent_id = db.Column(db.Integer, db.ForeignKey('target.id'), nullable=True, comment="父级目标ID")
     likes_count = db.Column(db.BigInteger, default=0, comment="点赞数")
-    # image_url = db.Column(db.String(255), nullable=True, comment="目标图片URL")
+    likes_goal = db.Column(db.BigInteger, default=0, comment="达成目标所需要的点赞数")
+    image_url = db.Column(db.String(255), nullable=True, comment="目标图片URL")
 
     # # 修改关系定义，使用字符串方式引用
     # tasks = db.relationship(

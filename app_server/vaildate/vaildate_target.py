@@ -10,10 +10,14 @@ def validate_target_data(data):
     title = data.get('title')
     if not title:
         return '目标标题不能为空'
+    
+    # 限制标题字数，最长不超过124个字
+    if len(title) > 124:
+        return '目标标题最长不超过124个字'
         
     # 调用Coze工作流
     parameters = {
-            "input": title
+        "input": title
     }
     result = run_coze_workflow(Config.WorkFlowID_ZFSH, parameters)
         
@@ -26,7 +30,7 @@ def validate_target_data(data):
         return (f"Coze工作流返回数据格式错误: {e}")  
     # 解析返回的数据
     res = data_dict['result']
-    print('res',res,type(res))
+    # print('res',res,type(res))
     if res == False:
         reason  = data_dict['reason']
         if reason:

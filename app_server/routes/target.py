@@ -26,7 +26,7 @@ def create_target():
         data = request.get_json()
         
         # 只接受指定字段
-        allowed_fields = {'title', 'desc', 'parent_id','image_url'}
+        allowed_fields = {'title', 'likes_goal', 'parent_id','image_url'}
         filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
         
         # 如果 image_url 为空，添加默认地址

@@ -19,11 +19,6 @@ class Task(Base):
     unlock_condition = db.Column(db.String(255), comment="解锁条件描述")
     dependent_tasks = db.Column(db.String(255), comment="依赖的前置任务ID列表,逗号分隔")
     
-    # 任务详细信息
-    priority = db.Column(db.Integer, default=0, comment="优先级: 0-低, 1-中, 2-高")
-    estimated_hours = db.Column(db.Float, comment="预计耗时(小时)")
-    actual_hours = db.Column(db.Float, comment="实际耗时(小时)")
-    progress = db.Column(db.Integer, default=0, comment="进度(0-100)")
 
     def check_unlock_condition(self):
         """检查任务是否可以解锁"""

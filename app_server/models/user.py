@@ -16,11 +16,9 @@ class User(Base):
 
     last_active_time = db.Column(db.DateTime, default=datetime.now, comment="最后登录时间")
 
-    def save(self):
-        """保存对象到数据库"""
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise e
+    def to_dict(self):
+        """返回用户可见的信息，不包括敏感字段"""
+        excluded_fields = {'id', 'unionid', 'openid', 'create_time', 'update_time', 'status'}
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in excluded_fields}
+
+

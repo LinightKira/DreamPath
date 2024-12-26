@@ -54,7 +54,7 @@ def wx_login():
         wx_login_api = 'https://api.weixin.qq.com/sns/jscode2session'
         response_data = requests.get(wx_login_api, params=req_params)  # 向API发起GET请求
         data = response_data.json()
-        print(data)
+        # print(data)
         openid = data['openid']  # 得到用户关于当前小程序的OpenID
         session_key = data['session_key']  # 得到用户关于当前小程序的会话密钥session_key
 
@@ -70,7 +70,7 @@ def wx_login():
             if not user:
                 print("user 不存在")
                 user_temp = User(nickname='匿名用户', openid=openid)
-                user_temp.create()
+                user_temp.save()
                 user = User.query.filter(User.openid == openid).first()
             elif user.status == 0:
                 return jsonify({

@@ -25,13 +25,37 @@ class Base(db.Model):
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
-    def create(self):
-        db.session.add(self)
-        db.session.commit()
-
     def save(self):
         """保存对象到数据库"""
         try:
+            db.session.add(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    def update(self, **kwargs):
+        """更新对象属性并保存到数据库
+        
+        Args:
+            **kwargs: 需要更新的字段和值的键值对
+            
+        Raises:
+            Exception: 数据库操作异常时抛出
+        """
+        try:
+            # 获取当前模型的所有列名
+            columns = [c.name for c in self.__table__.columns]
+            
+            # 只更新存在的字段
+            for key, value in kwargs.items():
+                if key in columns:
+                    setattr(self, key, value)
+            
+            # 自动更新update_time
+            self.update_time = datetime.now()
+            
+            # 保存到数据库
             db.session.add(self)
             db.session.commit()
         except Exception as e:

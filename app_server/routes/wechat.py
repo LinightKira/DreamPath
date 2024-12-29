@@ -69,7 +69,7 @@ def wx_login():
             print("user:", user, type(user))
             if not user:
                 print("user 不存在")
-                user_temp = User(nickname='匿名用户', openid=openid)
+                user_temp = User(openid=openid)
                 user_temp.save()
                 user = User.query.filter(User.openid == openid).first()
             elif user.status == 0:

@@ -89,7 +89,7 @@ def refresh():
         return jsonify({
             'code': 200,
             'msg': '刷新成功',
-            'data': {
+            'datas': {
                 "nickname": user.nickname,
                 "avatar": user.avatar, 
                 'access_token': access_token

@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_tok
 from app_server.logger import logger
 from app_server.models.user import User
 from app_server.utils import get_current_user_id
-from config import Config
+from config.config import Config
 from app_server import db
 
 user_bp = Blueprint('user', __name__)

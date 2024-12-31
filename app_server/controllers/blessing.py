@@ -1,6 +1,6 @@
 import json
 from app_server.utils.coze import run_coze_workflow
-from config import Config
+from config.config import Config
 from app_server.models.blessing import Blessing
 from app_server.models.target import Target
 

@@ -9,9 +9,11 @@ from app_server.routes.user import user_bp
 from app_server.routes.wechat import wechat_bp
 from app_server.routes.target import target_bp
 from app_server.routes.blessing import blessing_bp
+from app_server.routes.start import start_bp
 
-from config import Config
+from config.config import Config
 from flask_jwt_extended import JWTManager
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -32,6 +34,8 @@ app.register_blueprint(user_bp)
 app.register_blueprint(wechat_bp)
 app.register_blueprint(target_bp)
 app.register_blueprint(blessing_bp)
+app.register_blueprint(start_bp)
+
 
 
 # 连接数据库
@@ -39,9 +43,11 @@ with app.app_context():
     # 初始化数据库
     db.init_app(app)
     # db.drop_all() #删除所有的表
-    # db.create_all()  # 创建所有的表
+    db.create_all()  # 创建所有的表
 
 migrate = Migrate(app, db)
+
+# 初始化 Redis
 
 
 @app.route('/')

@@ -44,3 +44,23 @@ class Target(Base):
         """
         return cls.query.filter_by(id=target_id).first()
 
+    @classmethod
+    def count_targets(cls):
+        """
+        统计全部愿望的个数，状态为1
+        
+        Returns:
+            int: 愿望的个数
+        """
+        return cls.query.filter_by(status=1).count()
+
+    @classmethod
+    def count_completed_targets(cls):
+        """
+        统计全部已完成的个数，is_completed为True且状态为1
+        
+        Returns:
+            int: 已完成愿望的个数
+        """
+        return cls.query.filter_by(is_completed=True, status=1).count()
+

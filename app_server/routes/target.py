@@ -12,8 +12,9 @@ from app_server.models.target_like import create_target_like, TargetLike
 from app_server.utils.response import success_response, error_response
 from app_server.utils import get_current_user_id
 from app_server.logger import logger
-from config import Config
+from config.config import Config
 from app_server.models.user import User  # 添加这行导入语句
+from app_server.utils.redis import redis_client as r
 
 target_bp = Blueprint('target', __name__)
 
@@ -46,7 +47,10 @@ def create_target():
         target.user_id = get_current_user_id()  # 使用工具函数获取整数类型的user_id
         
         target.save()
+         # 在Redis中增加愿望计数器
+        r.incr('targets_count')
         logger.info(f"愿望创建成功，ID: {target.id}")
+
         return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": target.to_dict()})
 
     except Exception as e:
@@ -326,7 +330,7 @@ def complete_target(target_id):
         target.is_completed = True
         target.complete_time = datetime.now()
         db.session.commit()
-        
+        r.incr('completed_targets_count')
         return success_response(message='还愿成功！')
     except Exception as e:
         db.session.rollback()

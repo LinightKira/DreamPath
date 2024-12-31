@@ -4,7 +4,7 @@ import requests
 from flask import request, jsonify, Blueprint
 from app_server.models.user import User
 
-from config import Config
+from config.config import Config
 
 wechat_bp = Blueprint('wechat', __name__)
 

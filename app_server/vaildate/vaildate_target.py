@@ -1,9 +1,9 @@
 import json
-from config import Config
+from config.config import Config
 from app_server.utils.coze import run_coze_workflow
 # 文本内容安全识别
 # https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/msgSecCheck.html
-from config import Config
+from config.config import Config
 
 
 def validate_target_data(data):

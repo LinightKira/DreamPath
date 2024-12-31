@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  dreampath:
+    build: .
+    image: dreampath:latest
+    container_name: DreamPath
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app.py:/app/app.py
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./app_server:/app/app_server
+      - ./migrations:/app/migrations  # 添加 migrations 目录挂载
+    environment:
+      - FLASK_APP=app.py
+    restart: unless-stopped
+
+# 使用 docker-compose 进行部署：
+
+#  docker-compose up -d --build
+# 这样优化后带来的好处：
+
+# 依赖层被缓存：只要 requirements.txt 没有变化，就不会重新安装依赖
+# 使用 slim 基础镜像减小体积
+# 分离配置文件，便于管理和更新
+# 使用 docker-compose 简化部署命令
+
+# 更新应用时：
+
+# 如果只改动了应用代码（app.py 或 app_server 目录下的文件）：
+
+# docker-compose restart
+
+# 如果改动了配置文件（config 目录下的文件）：
+# 直接修改本地配置文件即可，因为是通过 volume 挂载的
+# 如果改动了依赖（requirements.txt）：
+
+# docker-compose up -d --build

@@ -1,6 +1,6 @@
 import json
 import requests
-from config import Config
+from config.config import Config
 from app_server.logger import logger
 
 

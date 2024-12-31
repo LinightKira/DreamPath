@@ -48,7 +48,12 @@ def create_target():
         
         target.save()
          # 在Redis中增加愿望计数器
-        r.incr('targets_count')
+        # 在Redis中增加愿望计数器，添加异常处理
+        try:
+            r.incr('targets_count')
+        except Exception as redis_err:
+            logger.warning(f"Redis写入失败，但程序继续运行: {str(redis_err)}")
+
         logger.info(f"愿望创建成功，ID: {target.id}")
 
         return jsonify({"code": HTTPStatus.OK, "msg": "success", "datas": target.to_dict()})
@@ -330,7 +335,12 @@ def complete_target(target_id):
         target.is_completed = True
         target.complete_time = datetime.now()
         db.session.commit()
-        r.incr('completed_targets_count')
+        # 在Redis中增加已完成愿望计数器，添加异常处理
+        try:
+            r.incr('completed_targets_count')
+        except Exception as redis_err:
+            logger.warning(f"Redis写入失败，但程序继续运行: {str(redis_err)}")
+         
         return success_response(message='还愿成功！')
     except Exception as e:
         db.session.rollback()

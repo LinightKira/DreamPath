@@ -30,9 +30,9 @@ def create_target():
         allowed_fields = {'title', 'likes_goal', 'parent_id','image_url'}
         filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
         
-        # 如果 image_url 为空，添加默认地址
-        if not filtered_data.get('image_url'):
-            filtered_data['image_url'] = Config.DEFAULT_TARGET_IMAGE_URL  # 从Config中获取默认地址
+        # # 如果 image_url 为空，添加默认地址
+        # if not filtered_data.get('image_url'):
+        #     filtered_data['image_url'] = Config.DEFAULT_TARGET_IMAGE_URL  # 从Config中获取默认地址
         
         # 打印过滤后的数据
         logger.debug(f"过滤后的愿望数据: {filtered_data}")

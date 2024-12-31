@@ -74,7 +74,7 @@ def get_target(tid):
             })
 
         uid = get_current_user_id()  # 使用工具函数
-        user = User.query.get(uid)  # 获取当前用户信息
+        user = User.query.get(target.user_id)  # 获取愿望用户的信息
 
         # 如果用户状态为0，则不返回愿望内容
         if user and user.status == 0:

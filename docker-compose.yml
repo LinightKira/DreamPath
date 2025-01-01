@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   dreampath:
@@ -14,14 +15,27 @@ services:
       - ./migrations:/app/migrations
     environment:
       - FLASK_APP=app.py
-      # - MYSQL_HOST=mysql
-      # - MYSQL_USER=root
-      # - MYSQL_PASSWORD=123456
-      # - MYSQL_DATABASE=DreamPath
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis  # 确保这里指向 redis 服务
     depends_on:
       - redis
+    networks:
+      - app-network
     restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - /home/data/redis-data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
   # mysql:
   #   image: mysql:8.0
@@ -33,16 +47,17 @@ services:
   #   ports:
   #     - "3306:3306"
   #   volumes:
+  #     - /home/data/mysql-data:/var/lib/mysql  # mysql:
+  #   image: mysql:8.0
+  #   container_name: my-mysql
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: 123456
+  #     MYSQL_DATABASE: DreamPath
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
   #     - /home/data/mysql-data:/var/lib/mysql
-
-  redis:
-    image: redis:latest
-    container_name: my-redis
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - /home/data/redis-data:/data
 
 # 使用 docker-compose 进行部署：
 

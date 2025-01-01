@@ -43,7 +43,7 @@ with app.app_context():
     # 初始化数据库
     db.init_app(app)
     # db.drop_all() #删除所有的表
-    db.create_all()  # 创建所有的表
+    # db.create_all()  # 创建所有的表
 
 migrate = Migrate(app, db)
 

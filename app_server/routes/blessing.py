@@ -16,7 +16,7 @@ def generate_system_blessings(target_id):
     生成系统祝福接口
     
     Args:
-        target_id: int - 目标ID
+        target_id: int - 愿望ID
         scene: str - 场景类型 (通过请求体传入)
     
     Returns:
@@ -36,7 +36,7 @@ def generate_system_blessings(target_id):
 
         target = Target.get_target_by_id(target_id)
         if not target:
-            raise Exception(f"未找到ID为{target_id}的目标")
+            raise Exception(f"未找到ID为{target_id}的愿望")
 
         if scene == "create" and target.user_id != user_id:
             raise Exception("无权限创建祝福") 
@@ -59,7 +59,7 @@ def get_blessings(target_id):
     获取祝福详情接口（支持分页）
     
     Args:
-        target_id: int - 目标ID
+        target_id: int - 愿望ID
         page: int - 页码（通过查询参数传入，默认1）
         per_page: int - 每页数量（通过查询参数传入，默认10）
     
@@ -71,10 +71,10 @@ def get_blessings(target_id):
         page = request.args.get('page', default=1, type=int)
         per_page = request.args.get('per_page', default=10, type=int)
         
-        # 验证目标是否存在
+        # 验证愿望是否存在
         target = Target.get_target_by_id(target_id)
         if not target:
-            raise Exception(f"未找到ID为{target_id}的目标")
+            raise Exception(f"未找到愿望")
             
          # 获取祝福列表（按最新排序），并关联用户信息
         blessings = Blessing.query.filter_by(target_id=target_id)\

@@ -18,7 +18,6 @@ def success_response(
     response = {
         "code": code,
         "msg": message,
-        "success": True
     }
     
     if data is not None:
@@ -43,7 +42,6 @@ def error_response(
     response = {
         "code": code,
         "msg": message,
-        "success": False
     }
     
     if data is not None:
@@ -51,29 +49,3 @@ def error_response(
         
     return jsonify(response)
 
-
-def general_response(
-    success: bool = True,
-    code: int = 200,
-    message: str = "",
-    data: Any = None
-) -> Dict:
-    """
-    通用响应函数
-    
-    Args:
-        success: 是否成功
-        code: 状态码
-        message: 响应消息
-        data: 响应数据
-    """
-    response = {
-        "code": code,
-        "msg": message,
-        "success": success
-    }
-    
-    if data is not None:
-        response["datas"] = data
-        
-    return jsonify(response) 

@@ -341,7 +341,7 @@ def complete_target(target_id):
         except Exception as redis_err:
             logger.warning(f"Redis写入失败，但程序继续运行: {str(redis_err)}")
          
-        return success_response(message='还愿成功！')
+        return success_response(message='恭喜您，愿望实现啦')
     except Exception as e:
         db.session.rollback()
         return error_response(f'完成愿望失败: {str(e)}') 
@@ -424,7 +424,16 @@ def get_my_targets():
         targets = pagination.items
         
         # 修改返回数据处理部分
-        target_list = [target.to_dict() for target in targets]
+        user = User.query.get(uid)
+        target_list = []
+        for target in targets:
+            target_dict = target.to_dict()
+            # 获取当前用户信息（因为是"我的愿望"，所以用户就是当前用户）     
+            if user:
+                target_dict['user_id'] = user.id
+                target_dict['user_avatar'] = user.avatar
+                target_dict['user_nickname'] = user.nickname
+            target_list.append(target_dict)
 
         return jsonify({
             "code": HTTPStatus.OK,
@@ -438,7 +447,7 @@ def get_my_targets():
         })
     
     except Exception as e:
-        logger.error(f"获取我的愿望列表时发生错误: {str(e)}")
+        logger.error(f"获取我的愿望时发生错误: {str(e)}")
         return jsonify({
             "code": HTTPStatus.INTERNAL_SERVER_ERROR, 
             "msg": str(e)
